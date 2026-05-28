@@ -8,11 +8,16 @@ export async function POST(req) {
   const body = await req.json();
 
   const newShipment = {
-    id: Date.now().toString(),
+    id: "LNX-" + Date.now(),
     pickup: body.pickup,
     delivery: body.delivery,
-    status: "Created",
-    time: new Date().toISOString()
+    status: "Booked",
+    stages: [
+      {
+        step: "Booked",
+        time: new Date().toISOString(),
+      },
+    ],
   };
 
   shipments.push(newShipment);
