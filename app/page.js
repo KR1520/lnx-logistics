@@ -6,7 +6,6 @@ export default function Home() {
   const [delivery, setDelivery] = useState("");
   const [searchId, setSearchId] = useState("");
   const [result, setResult] = useState(null);
-
   const createShipment = async () => {
     if (!pickup || !delivery) {
       alert("Enter pickup and delivery");
