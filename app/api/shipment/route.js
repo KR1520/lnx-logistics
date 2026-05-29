@@ -1,34 +1,49 @@
-import clientPromise from "../../../lib/mongodb.js";
+import clientPromise from "../../../lib/mongodb";
 
 export async function GET() {
-  const client = await clientPromise;
-  const db = client.db("logistics");
+  try {
+    const client = await clientPromise;
+    const db = client.db("logistics");
 
-  const shipments = await db.collection("shipments").find({}).toArray();
+    const shipments = await db
+      .collection("shipments")
+      .find({})
+      .toArray();
 
-  return Response.json(shipments);
+    return Response.json(shipments);
+  } catch (error) {
+    return Response.json({ error: "Failed to fetch shipments" });
+  }
 }
 
 export async function POST(req) {
-  const body = await req.json();
+  try {
+    const body = await req.json();
 
-  const client = await clientPromise;
-  const db = client.db("logistics");
+    if (!body.pickup || !body.delivery) {
+      return Response.json({ error: "Missing fields" });
+    }
 
-  const newShipment = {
-    id: "LNX-" + Date.now(),
-    pickup: body.pickup,
-    delivery: body.delivery,
-    status: "Booked",
-    stages: [
-      {
-        step: "Booked",
-        time: new Date().toISOString(),
-      },
-    ],
-  };
+    const client = await clientPromise;
+    const db = client.db("logistics");
 
-  await db.collection("shipments").insertOne(newShipment);
+    const newShipment = {
+      id: "LNX-" + Date.now(),
+      pickup: body.pickup,
+      delivery: body.delivery,
+      status: "Booked",
+      stages: [
+        {
+          step: "Booked",
+          time: new Date().toISOString(),
+        },
+      ],
+    };
 
-  return Response.json(newShipment);
+    await db.collection("shipments").insertOne(newShipment);
+
+    return Response.json(newShipment);
+  } catch (error) {
+    return Response.json({ error: "Failed to create shipment" });
+  }
 }

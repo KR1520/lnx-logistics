@@ -7,30 +7,57 @@ export default function Home() {
   const [searchId, setSearchId] = useState("");
   const [result, setResult] = useState(null);
   const createShipment = async () => {
-    if (!pickup || !delivery) {
-      alert("Enter pickup and delivery");
-      return;
-    }
+  if (!pickup || !delivery) {
+    alert("Enter pickup and delivery");
+    return;
+  }
 
-    const res = await fetch("/api/shipment", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ pickup, delivery }),
-    });
+  const res = await fetch("/api/shipment", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ pickup, delivery }),
+  });
 
-    const data = await res.json();
-    setResult(data);
-    setPickup("");
-    setDelivery("");
-  };
+  const data = await res.json();
 
-  const trackShipment = async () => {
+  setResult(data);
+
+  // ✅ CLEAR ALL INPUTS (IMPORTANT FIX)
+  setPickup("");
+  setDelivery("");
+  setSearchId("");   // 🔴 THIS LINE WAS MISSING
+};
+
+  
+  }
+;const trackShipment = async () => {
+  if (!searchId) {
+    setResult({ error: "Enter shipment ID first" });
+    return;
+  }
+
+  try {
+    // 🔴 CLEAR OLD RESULT FIRST
+    setResult(null);
+
     const res = await fetch("/api/shipment");
     const data = await res.json();
 
-    const found = data.find((s) => s.id === searchId);
+    const found = data.find(
+      (s) => s.id.trim() === searchId.trim()
+    );
+
+    if (found) {
+      setResult(found);
+    } else {
+      setResult({ error: "Shipment not found" });
+    }
+  } catch (error) {
+    setResult({ error: "Something went wrong" });
+  }
+}; 
 
     if (found) {
       setResult(found);
@@ -90,6 +117,7 @@ export default function Home() {
           value={searchId}
           onChange={(e) => setSearchId(e.target.value)}
           style={inputStyle}
+          
         />
 
         <button onClick={trackShipment} style={btnStyle}>
