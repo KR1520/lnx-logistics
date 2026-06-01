@@ -9,11 +9,12 @@ export default function Home() {
 
   // ✅ CREATE SHIPMENT
   const createShipment = async () => {
-    if (!pickup || !delivery) {
-      alert("Enter pickup and delivery");
-      return;
-    }
+  if (!pickup || !delivery) {
+    alert("Enter pickup and delivery");
+    return;
+  }
 
+  try {
     const res = await fetch("/api/shipment", {
       method: "POST",
       headers: {
@@ -24,12 +25,22 @@ export default function Home() {
 
     const data = await res.json();
 
-    setResult(data);
+    console.log("Shipment Response:", data); // 👈 IMPORTANT DEBUG
+
+    if (data.error) {
+      setResult({ error: data.error });
+    } else {
+      setResult(data);
+    }
 
     setPickup("");
     setDelivery("");
     setSearchId("");
-  };
+  } catch (error) {
+    console.error(error);
+    setResult({ error: "Failed to create shipment" });
+  }
+};
 
   // ✅ TRACK SHIPMENT
   const trackShipment = async () => {
