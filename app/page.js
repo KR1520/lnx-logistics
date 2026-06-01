@@ -6,84 +6,81 @@ export default function Home() {
   const [delivery, setDelivery] = useState("");
   const [searchId, setSearchId] = useState("");
   const [result, setResult] = useState(null);
+
+  // ✅ CREATE SHIPMENT
   const createShipment = async () => {
-  if (!pickup || !delivery) {
-    alert("Enter pickup and delivery");
-    return;
-  }
+    if (!pickup || !delivery) {
+      alert("Enter pickup and delivery");
+      return;
+    }
 
-  const res = await fetch("/api/shipment", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ pickup, delivery }),
-  });
+    const res = await fetch("/api/shipment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ pickup, delivery }),
+    });
 
-  const data = await res.json();
-
-  setResult(data);
-
-  // ✅ CLEAR ALL INPUTS (IMPORTANT FIX)
-  setPickup("");
-  setDelivery("");
-  setSearchId("");   // 🔴 THIS LINE WAS MISSING
-};
-
-  
-  }
-;const trackShipment = async () => {
-  if (!searchId) {
-    setResult({ error: "Enter shipment ID first" });
-    return;
-  }
-
-  try {
-    // 🔴 CLEAR OLD RESULT FIRST
-    setResult(null);
-
-    const res = await fetch("/api/shipment");
     const data = await res.json();
 
-    const found = data.find(
-      (s) => s.id.trim() === searchId.trim()
-    );
+    setResult(data);
 
-    if (found) {
-      setResult(found);
-    } else {
-      setResult({ error: "Shipment not found" });
+    setPickup("");
+    setDelivery("");
+    setSearchId("");
+  };
+
+  // ✅ TRACK SHIPMENT
+  const trackShipment = async () => {
+    if (!searchId) {
+      setResult({ error: "Enter shipment ID first" });
+      return;
     }
-  } catch (error) {
-    setResult({ error: "Something went wrong" });
-  }
-}; 
 
-    if (found) {
-      setResult(found);
-    } else {
-      setResult({ error: "Shipment not found" });
+    try {
+      setResult(null);
+
+      const res = await fetch("/api/shipment");
+      const data = await res.json();
+
+      const found = data.find(
+        (s) => s.id.trim() === searchId.trim()
+      );
+
+      if (found) {
+        setResult(found);
+      } else {
+        setResult({ error: "Shipment not found" });
+      }
+    } catch (error) {
+      setResult({ error: "Something went wrong" });
     }
   };
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "linear-gradient(135deg, #0f172a, #1e3a8a)",
-      color: "white",
-      padding: "40px",
-      fontFamily: "Arial"
-    }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #0f172a, #1e3a8a)",
+        color: "white",
+        padding: "40px",
+        fontFamily: "Arial",
+      }}
+    >
       <h1 style={{ fontSize: "40px", marginBottom: "30px" }}>
         LNX Logistics 🚀
       </h1>
 
-      <div style={{
-        background: "#0f172a",
-        padding: "20px",
-        borderRadius: "10px",
-        marginBottom: "30px"
-      }}>
+      {/* CREATE SHIPMENT */}
+      <div
+        style={{
+          background: "#0f172a",
+          padding: "20px",
+          borderRadius: "10px",
+          marginBottom: "30px",
+        }}
+      >
         <h2>Create Shipment</h2>
 
         <input
@@ -105,11 +102,14 @@ export default function Home() {
         </button>
       </div>
 
-      <div style={{
-        background: "#0f172a",
-        padding: "20px",
-        borderRadius: "10px"
-      }}>
+      {/* TRACK SHIPMENT */}
+      <div
+        style={{
+          background: "#0f172a",
+          padding: "20px",
+          borderRadius: "10px",
+        }}
+      >
         <h2>Track Shipment</h2>
 
         <input
@@ -117,7 +117,6 @@ export default function Home() {
           value={searchId}
           onChange={(e) => setSearchId(e.target.value)}
           style={inputStyle}
-          
         />
 
         <button onClick={trackShipment} style={btnStyle}>
@@ -125,13 +124,16 @@ export default function Home() {
         </button>
       </div>
 
+      {/* RESULT */}
       <div style={{ marginTop: "30px" }}>
         <h2>Result</h2>
-        <pre style={{
-          background: "#020617",
-          padding: "20px",
-          borderRadius: "10px"
-        }}>
+        <pre
+          style={{
+            background: "#020617",
+            padding: "20px",
+            borderRadius: "10px",
+          }}
+        >
           {JSON.stringify(result, null, 2)}
         </pre>
       </div>
@@ -139,13 +141,14 @@ export default function Home() {
   );
 }
 
+// STYLES
 const inputStyle = {
   display: "block",
   margin: "10px 0",
   padding: "10px",
   width: "100%",
   borderRadius: "5px",
-  border: "none"
+  border: "none",
 };
 
 const btnStyle = {
@@ -155,5 +158,5 @@ const btnStyle = {
   border: "none",
   borderRadius: "5px",
   color: "white",
-  cursor: "pointer"
+  cursor: "pointer",
 };
