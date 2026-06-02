@@ -62,4 +62,32 @@ return Response.json(cleanData);
     console.error("GET ERROR:", error);
     return Response.json({ error: "Failed to fetch shipments" }, { status: 500 });
   }
+}   // 👈 this is end of GET function
+
+export async function PUT(req) {
+  try {
+    const body = await req.json();
+    const { id, status } = body;
+
+    const client = await clientPromise;
+    const db = client.db("lnx-logistics");
+
+    await db.collection("shipments").updateOne(
+      { id: id },
+      {
+        $set: { status: status },
+        $push: {
+          history: {
+            status: status,
+            time: new Date(),
+          },
+        },
+      }
+    );
+
+    return Response.json({ success: true });
+  } catch (error) {
+    console.error("PUT ERROR:", error);
+    return Response.json({ error: "Failed to update shipment" }, { status: 500 });
+  }
 }
