@@ -15,9 +15,17 @@ export async function POST(req) {
       createdAt: new Date(),
     };
 
-    await db.collection("shipments").insertOne(newShipment);
+   const result = await db.collection("shipments").insertOne(newShipment);
 
-    return Response.json(newShipment);
+const responseData = {
+  id: newShipment.id,
+  pickup: newShipment.pickup,
+  delivery: newShipment.delivery,
+  status: newShipment.status,
+  createdAt: newShipment.createdAt,
+};
+
+return Response.json(responseData);
   } catch (error) {
     console.error("POST ERROR:", error);
     return Response.json({ error: "Failed to create shipment" }, { status: 500 });
