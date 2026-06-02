@@ -8,7 +8,7 @@ export async function POST(req) {
     const db = client.db("lnx-logistics");
 
     const newShipment = {
-      id: "LNX-" + Date.now(),
+      id: "LNX-" + Math.floor(100000 + Math.random() * 900000),
       pickup: body.pickup,
       delivery: body.delivery,
       status: "Booked",
@@ -34,7 +34,8 @@ export async function GET() {
       .find({})
       .toArray();
 
-    return Response.json(shipments);
+    delete newShipment._id;
+return Response.json(newShipment);
   } catch (error) {
     console.error("GET ERROR:", error);
     return Response.json({ error: "Failed to fetch shipments" }, { status: 500 });
