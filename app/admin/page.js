@@ -30,9 +30,11 @@ export default function Admin() {
           <p>{s.pickup} → {s.delivery}</p>
           <p>Status: {s.status}</p>
 
-          <button onClick={() => updateStatus(s.id, "Picked Up")}>Picked</button>
-          <button onClick={() => updateStatus(s.id, "In Transit")}>Transit</button>
-          <button onClick={() => updateStatus(s.id, "Delivered")}>Delivered</button>
+          <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+  <button onClick={() => updateStatus(s.id, "Picked Up")}>Picked</button>
+  <button onClick={() => updateStatus(s.id, "In Transit")}>Transit</button>
+  <button onClick={() => updateStatus(s.id, "Delivered")}>Delivered</button>
+</div>
         </div>
       ))}
     </div>
