@@ -7,13 +7,19 @@ export async function POST(req) {
     const client = await clientPromise;
     const db = client.db("lnx-logistics");
 
-    const newShipment = {
-      id: "LNX-" + Math.floor(100000 + Math.random() * 900000),
-      pickup: body.pickup,
-      delivery: body.delivery,
+   const newShipment = {
+  id: "LNX-" + Math.floor(100000 + Math.random() * 900000),
+  pickup: body.pickup,
+  delivery: body.delivery,
+  status: "Booked",
+  history: [
+    {
       status: "Booked",
-      createdAt: new Date(),
-    };
+      time: new Date(),
+    },
+  ],
+  createdAt: new Date(),
+};
 
    const result = await db.collection("shipments").insertOne(newShipment);
 
@@ -37,13 +43,21 @@ export async function GET() {
     const client = await clientPromise;
     const db = client.db("lnx-logistics");
 
-    const shipments = await db
-      .collection("shipments")
-      .find({})
-      .toArray();
+   const shipments = await db
+  .collection("shipments")
+  .find({})
+  .toArray();
 
-    delete newShipment._id;
-return Response.json(newShipment);
+const cleanData = shipments.map((s) => ({
+  id: s.id,
+  pickup: s.pickup,
+  delivery: s.delivery,
+  status: s.status,
+  history: s.history,
+  createdAt: s.createdAt,
+}));
+
+return Response.json(cleanData);
   } catch (error) {
     console.error("GET ERROR:", error);
     return Response.json({ error: "Failed to fetch shipments" }, { status: 500 });
