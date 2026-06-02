@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 
 export default function Home() {
@@ -7,14 +8,13 @@ export default function Home() {
   const [searchId, setSearchId] = useState("");
   const [result, setResult] = useState(null);
 
-  // ✅ CREATE SHIPMENT
+  // CREATE SHIPMENT
   const createShipment = async () => {
-  if (!pickup || !delivery) {
-    alert("Enter pickup and delivery");
-    return;
-  }
+    if (!pickup || !delivery) {
+      alert("Enter pickup and delivery");
+      return;
+    }
 
-  try {
     const res = await fetch("/api/shipment", {
       method: "POST",
       headers: {
@@ -24,25 +24,14 @@ export default function Home() {
     });
 
     const data = await res.json();
-
-    console.log("Shipment Response:", data); // 👈 IMPORTANT DEBUG
-
-    if (data.error) {
-      setResult({ error: data.error });
-    } else {
-      setResult(data);
-    }
+    setResult(data);
 
     setPickup("");
     setDelivery("");
     setSearchId("");
-  } catch (error) {
-    console.error(error);
-    setResult({ error: "Failed to create shipment" });
-  }
-};
+  };
 
-  // ✅ TRACK SHIPMENT
+  // TRACK SHIPMENT
   const trackShipment = async () => {
     if (!searchId) {
       setResult({ error: "Enter shipment ID first" });
@@ -50,14 +39,10 @@ export default function Home() {
     }
 
     try {
-      setResult(null);
-
       const res = await fetch("/api/shipment");
       const data = await res.json();
 
-      const found = data.find(
-        (s) => s.id.trim() === searchId.trim()
-      );
+      const found = data.find((s) => s.id === searchId.trim());
 
       if (found) {
         setResult(found);
@@ -79,24 +64,27 @@ export default function Home() {
         fontFamily: "Arial",
       }}
     >
-      <h1 style={{ fontSize: "40px", marginBottom: "30px" }}>
+      {/* TITLE */}
+      <h1 style={{ fontSize: "40px", marginBottom: "10px" }}>
         LNX Logistics 🚀
-      </h1><a href="/admin" style={{
-  display: "inline-block",
-  marginTop: "10px",
-  marginBottom: "20px",
-  padding: "10px 20px",
-  background: "#3b82f6",
-  color: "white",
-  borderRadius: "6px",
-  textDecoration: "none",
-  fontWeight: "bold"
-}}>
-  Go to Admin Panel
-</a>
-      
-  Go to Admin Panel
-</a>
+      </h1>
+
+      {/* ADMIN BUTTON */}
+      <a
+        href="/admin"
+        style={{
+          display: "inline-block",
+          marginBottom: "30px",
+          padding: "10px 20px",
+          background: "#3b82f6",
+          color: "white",
+          borderRadius: "6px",
+          textDecoration: "none",
+          fontWeight: "bold",
+        }}
+      >
+        Go to Admin Panel
+      </a>
 
       {/* CREATE SHIPMENT */}
       <div
@@ -153,6 +141,7 @@ export default function Home() {
       {/* RESULT */}
       <div style={{ marginTop: "30px" }}>
         <h2>Result</h2>
+
         <pre
           style={{
             background: "#020617",
@@ -167,7 +156,7 @@ export default function Home() {
   );
 }
 
-// STYLES
+// INPUT STYLE
 const inputStyle = {
   display: "block",
   margin: "10px 0",
@@ -177,6 +166,7 @@ const inputStyle = {
   border: "none",
 };
 
+// BUTTON STYLE
 const btnStyle = {
   marginTop: "10px",
   padding: "10px 20px",
