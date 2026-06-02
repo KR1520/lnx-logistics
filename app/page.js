@@ -81,7 +81,22 @@ export default function Home() {
     >
       <h1 style={{ fontSize: "40px", marginBottom: "30px" }}>
         LNX Logistics 🚀
-      </h1>
+      </h1><a href="/admin" style={{
+  display: "inline-block",
+  marginTop: "10px",
+  marginBottom: "20px",
+  padding: "10px 20px",
+  background: "#3b82f6",
+  color: "white",
+  borderRadius: "6px",
+  textDecoration: "none",
+  fontWeight: "bold"
+}}>
+  Go to Admin Panel
+</a>
+      
+  Go to Admin Panel
+</a>
 
       {/* CREATE SHIPMENT */}
       <div
