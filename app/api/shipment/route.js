@@ -1,15 +1,10 @@
-import clientPromise from "../../../lib/mongodb";
+import clientPromise from "@/lib/mongodb";
 
 export async function POST(req) {
   try {
-    console.log("🔥 API HIT");
-
     const body = await req.json();
-    console.log("📦 Body:", body);
 
     const client = await clientPromise;
-    console.log("✅ Mongo Connected");
-
     const db = client.db("lnx-logistics");
 
     const newShipment = {
@@ -22,17 +17,13 @@ export async function POST(req) {
 
     await db.collection("shipments").insertOne(newShipment);
 
-    console.log("✅ Inserted");
-
     return Response.json(newShipment);
   } catch (error) {
-    console.error("❌ ERROR:", error);
-    return Response.json(
-      { error: "Failed to create shipment" },
-      { status: 500 }
-    );
+    console.error("POST ERROR:", error);
+    return Response.json({ error: "Failed to create shipment" }, { status: 500 });
   }
 }
+
 export async function GET() {
   try {
     const client = await clientPromise;
@@ -45,9 +36,7 @@ export async function GET() {
 
     return Response.json(shipments);
   } catch (error) {
-    return Response.json(
-      { error: "Failed to fetch shipments" },
-      { status: 500 }
-    );
+    console.error("GET ERROR:", error);
+    return Response.json({ error: "Failed to fetch shipments" }, { status: 500 });
   }
 }
