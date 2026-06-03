@@ -12,6 +12,9 @@ export default function Home() {
   const createShipment = async () => {
     const res = await fetch("/api/shipments", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ pickup, delivery }),
     });
 
@@ -28,42 +31,56 @@ export default function Home() {
   };
 
   return (
-    <div style={{ padding: "40px" }}>
-      <h1>LNX Logistics 🚀</h1>
+    <div style={{ padding: "40px", color: "white" }}>
+      <h1 style={{ fontSize: "32px", marginBottom: "20px" }}>
+        LNX Logistics 🚀
+      </h1>
 
-      {/* CREATE */}
+      {/* CREATE SHIPMENT */}
       <h2>Create Shipment</h2>
+
       <input
-        placeholder="Pickup"
+        placeholder="Pickup Location"
         value={pickup}
         onChange={(e) => setPickup(e.target.value)}
+        style={{ marginRight: "10px", padding: "8px" }}
       />
+
       <input
-        placeholder="Delivery"
+        placeholder="Delivery Location"
         value={delivery}
         onChange={(e) => setDelivery(e.target.value)}
+        style={{ marginRight: "10px", padding: "8px" }}
       />
-      <button onClick={createShipment}>Create</button>
 
-      {/* TRACK */}
-      <h2>Track Shipment</h2>
+      <button onClick={createShipment} style={{ padding: "8px 12px" }}>
+        Create
+      </button>
+
+      {/* TRACK SHIPMENT */}
+      <h2 style={{ marginTop: "30px" }}>Track Shipment</h2>
+
       <input
-        placeholder="Tracking ID"
+        placeholder="Enter Tracking ID"
         value={trackingId}
         onChange={(e) => setTrackingId(e.target.value)}
+        style={{ marginRight: "10px", padding: "8px" }}
       />
-      <button onClick={trackShipment}>Track</button>
 
-      {/* RESULT */}
+      <button onClick={trackShipment} style={{ padding: "8px 12px" }}>
+        Track
+      </button>
+
+      {/* RESULT + MAP */}
       {result && (
-        <div>
+        <div style={{ marginTop: "30px" }}>
           <h3>ID: {result.id}</h3>
           <p>
             {result.pickup} → {result.delivery}
           </p>
           <p>Status: {result.status}</p>
 
-          {/* MAP */}
+          {/* MAP WILL SHOW HERE */}
           <MapTracker
             pickup={result.pickup}
             delivery={result.delivery}
