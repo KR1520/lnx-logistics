@@ -1,25 +1,45 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-export default function MapTracker({ pickup, delivery }) {
-  const mapRef = useRef(null);
+declare global {
+  interface Window {
+    google: any;
+  }
+}
+
+export default function MapTracker({
+  pickup,
+  delivery,
+}: {
+  pickup: string;
+  delivery: string;
+}) {
+  const mapRef = useRef<HTMLDivElement | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  // ✅ Wait until Google script is ready
+  useEffect(() => {
+    const checkGoogle = setInterval(() => {
+      if (window.google) {
+        setLoaded(true);
+        clearInterval(checkGoogle);
+      }
+    }, 300);
+
+    return () => clearInterval(checkGoogle);
+  }, []);
 
   useEffect(() => {
-    if (!window.google) {
-      console.log("Google not loaded");
-      return;
-    }
+    if (!loaded || !mapRef.current) return;
 
     const map = new window.google.maps.Map(mapRef.current, {
       zoom: 6,
-      center: { lat: 20.5937, lng: 78.9629 }, // India center
+      center: { lat: 20.5937, lng: 78.9629 },
     });
 
     const directionsService = new window.google.maps.DirectionsService();
-    const directionsRenderer = new window.google.maps.DirectionsRenderer({
-      suppressMarkers: false,
-    });
+    const directionsRenderer = new window.google.maps.DirectionsRenderer();
 
     directionsRenderer.setMap(map);
 
@@ -29,7 +49,7 @@ export default function MapTracker({ pickup, delivery }) {
         destination: delivery,
         travelMode: window.google.maps.TravelMode.DRIVING,
       },
-      (result, status) => {
+      (result: any, status: string) => {
         if (status === "OK") {
           directionsRenderer.setDirections(result);
 
@@ -50,11 +70,11 @@ export default function MapTracker({ pickup, delivery }) {
             }
           }, 700);
         } else {
-          console.log("Directions error:", status);
+          console.error("Directions error:", status);
         }
       }
     );
-  }, [pickup, delivery]);
+  }, [loaded, pickup, delivery]);
 
   return (
     <div
