@@ -7,7 +7,7 @@ export default function Home() {
   const [pickup, setPickup] = useState("");
   const [delivery, setDelivery] = useState("");
   const [trackingId, setTrackingId] = useState("");
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState<any>(null);
 
   const createShipment = async () => {
     const res = await fetch("/api/shipments", {

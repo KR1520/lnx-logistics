@@ -2,11 +2,17 @@
 
 import { useEffect, useRef } from "react";
 
-export default function MapTracker({ pickup, delivery }) {
-  const mapRef = useRef(null);
+/* ✅ DEFINE TYPES */
+type MapTrackerProps = {
+  pickup: string;
+  delivery: string;
+};
+
+export default function MapTracker({ pickup, delivery }: MapTrackerProps) {
+  const mapRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!window.google || !pickup || !delivery) return;
+    if (!window.google || !pickup || !delivery || !mapRef.current) return;
 
     const map = new window.google.maps.Map(mapRef.current, {
       zoom: 6,
@@ -22,9 +28,9 @@ export default function MapTracker({ pickup, delivery }) {
       {
         origin: pickup,
         destination: delivery,
-        travelMode: "DRIVING",
+        travelMode: window.google.maps.TravelMode.DRIVING,
       },
-      (result, status) => {
+      (result: any, status: string) => {
         if (status === "OK") {
           directionsRenderer.setDirections(result);
         } else {
