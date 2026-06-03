@@ -18,16 +18,15 @@ export default function MapTracker({
   const mapRef = useRef<HTMLDivElement | null>(null);
   const [loaded, setLoaded] = useState(false);
 
-  // ✅ Wait until Google script is ready
   useEffect(() => {
-    const checkGoogle = setInterval(() => {
+    const interval = setInterval(() => {
       if (window.google) {
         setLoaded(true);
-        clearInterval(checkGoogle);
+        clearInterval(interval);
       }
     }, 300);
 
-    return () => clearInterval(checkGoogle);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -55,36 +54,24 @@ export default function MapTracker({
 
           const route = result.routes[0].overview_path;
 
-          let index = 0;
+          let i = 0;
 
           const truck = new window.google.maps.Marker({
             position: route[0],
-            map: map,
+            map,
             icon: "https://maps.google.com/mapfiles/kml/shapes/truck.png",
           });
 
           setInterval(() => {
-            if (index < route.length) {
-              truck.setPosition(route[index]);
-              index++;
+            if (i < route.length) {
+              truck.setPosition(route[i]);
+              i++;
             }
           }, 700);
-        } else {
-          console.error("Directions error:", status);
         }
       }
     );
   }, [loaded, pickup, delivery]);
 
-  return (
-    <div
-      ref={mapRef}
-      style={{
-        width: "100%",
-        height: "400px",
-        marginTop: "20px",
-        borderRadius: "10px",
-      }}
-    />
-  );
+  return <div ref={mapRef} style={{ width: "100%", height: "400px" }} />;
 }
