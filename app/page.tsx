@@ -3,41 +3,61 @@
 import { useState } from "react";
 import MapTracker from "./components/MapTracker";
 
+/* ✅ TYPE DEFINE */
+type Shipment = {
+  id: string;
+  pickup: string;
+  delivery: string;
+  status: string;
+  history?: { status: string; time: string }[];
+  createdAt: string;
+};
+
 export default function Home() {
-  const [pickup, setPickup] = useState("");
-  const [delivery, setDelivery] = useState("");
-  const [trackingId, setTrackingId] = useState("");
-  const [result, setResult] = useState<any>(null);
+  const [pickup, setPickup] = useState<string>("");
+  const [delivery, setDelivery] = useState<string>("");
+  const [trackingId, setTrackingId] = useState<string>("");
+  const [result, setResult] = useState<Shipment | null>(null);
 
   const createShipment = async () => {
-    const res = await fetch("/api/shipments", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ pickup, delivery }),
-    });
+    try {
+      const res = await fetch("/api/shipments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ pickup, delivery }),
+      });
 
-    const data = await res.json();
+      const data: Shipment = await res.json();
 
-    alert("Shipment Created: " + data.id);
-    setResult(data);
+      alert("✅ Shipment Created: " + data.id);
+      setResult(data);
+    } catch (err) {
+      console.error(err);
+      alert("❌ Failed to create shipment");
+    }
   };
 
   const trackShipment = async () => {
-    const res = await fetch("/api/shipments");
-    const data = await res.json();
+    try {
+      const res = await fetch("/api/shipments");
+      const data: Shipment[] = await res.json();
 
-    const found = data.find(
-      (s) => s.id.trim() === trackingId.trim()
-    );
+      const found = data.find(
+        (s: Shipment) => s.id.trim() === trackingId.trim()
+      );
 
-    if (!found) {
-      alert("Shipment not found");
-      return;
+      if (!found) {
+        alert("❌ Shipment not found");
+        return;
+      }
+
+      setResult(found);
+    } catch (err) {
+      console.error(err);
+      alert("❌ Tracking failed");
     }
-
-    setResult(found);
   };
 
   return (
@@ -69,13 +89,14 @@ export default function Home() {
 
       {/* RESULT */}
       {result && (
-        <div>
+        <div style={{ marginTop: "20px" }}>
           <h3>ID: {result.id}</h3>
           <p>
             {result.pickup} → {result.delivery}
           </p>
           <p>Status: {result.status}</p>
 
+          {/* MAP */}
           <MapTracker
             pickup={result.pickup}
             delivery={result.delivery}
