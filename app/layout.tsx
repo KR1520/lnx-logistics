@@ -1,11 +1,18 @@
 import Script from "next/script";
+import React from "react";
 
+/* ✅ Metadata */
 export const metadata = {
   title: "LNX Logistics",
   description: "Smart Logistics Platform",
 };
 
-export default function RootLayout({ children }) {
+/* ✅ Proper typing */
+type RootLayoutProps = {
+  children: React.ReactNode;
+};
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <head>
