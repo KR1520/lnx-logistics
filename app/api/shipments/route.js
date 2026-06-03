@@ -1,5 +1,6 @@
 import clientPromise from "@/lib/mongodb";
 
+// CREATE SHIPMENT
 export async function POST(req) {
   try {
     const body = await req.json();
@@ -30,6 +31,7 @@ export async function POST(req) {
   }
 }
 
+// GET ALL SHIPMENTS
 export async function GET() {
   try {
     const client = await clientPromise;
@@ -41,6 +43,45 @@ export async function GET() {
       .toArray();
 
     return Response.json(shipments);
+  } catch (error) {
+    console.error(error);
+    return Response.json({ error: "Failed" }, { status: 500 });
+  }
+}
+
+// UPDATE STATUS
+export async function PUT(req) {
+  try {
+    const body = await req.json();
+
+    const client = await clientPromise;
+    const db = client.db("lnx-logistics");
+
+    const shipment = await db.collection("shipments").findOne({ id: body.id });
+
+    if (!shipment) {
+      return Response.json({ error: "Not found" }, { status: 404 });
+    }
+
+    const updatedHistory = [
+      ...(shipment.history || []),
+      {
+        status: body.status,
+        time: new Date(),
+      },
+    ];
+
+    await db.collection("shipments").updateOne(
+      { id: body.id },
+      {
+        $set: {
+          status: body.status,
+          history: updatedHistory,
+        },
+      }
+    );
+
+    return Response.json({ success: true });
   } catch (error) {
     console.error(error);
     return Response.json({ error: "Failed" }, { status: 500 });

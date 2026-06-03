@@ -7,7 +7,7 @@ export default function Home() {
   const [pickup, setPickup] = useState("");
   const [delivery, setDelivery] = useState("");
   const [trackingId, setTrackingId] = useState("");
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState(null);
 
   const createShipment = async () => {
     const res = await fetch("/api/shipments", {
@@ -19,6 +19,8 @@ export default function Home() {
     });
 
     const data = await res.json();
+
+    alert("Shipment Created: " + data.id);
     setResult(data);
   };
 
@@ -26,149 +28,60 @@ export default function Home() {
     const res = await fetch("/api/shipments");
     const data = await res.json();
 
-    const found = data.find((s: any) => s.id === trackingId);
+    const found = data.find(
+      (s) => s.id.trim() === trackingId.trim()
+    );
+
+    if (!found) {
+      alert("Shipment not found");
+      return;
+    }
+
     setResult(found);
   };
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "linear-gradient(to right, #020617, #0f172a)",
-      color: "white",
-      padding: "40px"
-    }}>
+    <div style={{ padding: "40px", background: "#020617", color: "white" }}>
+      <h1>LNX Logistics 🚀</h1>
 
-      {/* HEADER */}
-      <div style={{ textAlign: "center", marginBottom: "40px" }}>
-        <h1 style={{ fontSize: "48px", fontWeight: "bold" }}>
-          LNX Logistics
-        </h1>
-        <p style={{ color: "#94a3b8", marginTop: "10px" }}>
-          Smart 5PL Supply Chain Platform
-        </p>
+      {/* CREATE */}
+      <h2>Create Shipment</h2>
+      <input
+        placeholder="Pickup"
+        value={pickup}
+        onChange={(e) => setPickup(e.target.value)}
+      />
+      <input
+        placeholder="Delivery"
+        value={delivery}
+        onChange={(e) => setDelivery(e.target.value)}
+      />
+      <button onClick={createShipment}>Create</button>
 
-        <button
-          style={{
-            marginTop: "20px",
-            padding: "12px 24px",
-            background: "#3b82f6",
-            border: "none",
-            borderRadius: "8px",
-            color: "white",
-            cursor: "pointer"
-          }}
-        >
-          Admin Dashboard
-        </button>
-      </div>
+      {/* TRACK */}
+      <h2>Track Shipment</h2>
+      <input
+        placeholder="Tracking ID"
+        value={trackingId}
+        onChange={(e) => setTrackingId(e.target.value)}
+      />
+      <button onClick={trackShipment}>Track</button>
 
-      {/* CARDS */}
-      <div style={{
-        display: "flex",
-        gap: "20px",
-        flexWrap: "wrap",
-        justifyContent: "center"
-      }}>
-
-        {/* CREATE */}
-        <div style={{
-          background: "#0f172a",
-          padding: "25px",
-          borderRadius: "12px",
-          width: "400px"
-        }}>
-          <h2>📦 Create Shipment</h2>
-
-          <input
-            placeholder="Pickup Location"
-            value={pickup}
-            onChange={(e) => setPickup(e.target.value)}
-            style={inputStyle}
-          />
-
-          <input
-            placeholder="Delivery Location"
-            value={delivery}
-            onChange={(e) => setDelivery(e.target.value)}
-            style={inputStyle}
-          />
-
-          <button onClick={createShipment} style={primaryBtn}>
-            Create Shipment
-          </button>
-        </div>
-
-        {/* TRACK */}
-        <div style={{
-          background: "#0f172a",
-          padding: "25px",
-          borderRadius: "12px",
-          width: "400px"
-        }}>
-          <h2>🔍 Track Shipment</h2>
-
-          <input
-            placeholder="Enter Shipment ID"
-            value={trackingId}
-            onChange={(e) => setTrackingId(e.target.value)}
-            style={inputStyle}
-          />
-
-          <button onClick={trackShipment} style={primaryBtn}>
-            Track Now
-          </button>
-        </div>
-      </div>
-
-      {/* LIVE TRACKING */}
+      {/* RESULT */}
       {result && (
-        <div style={{
-          marginTop: "40px",
-          background: "#0f172a",
-          padding: "20px",
-          borderRadius: "12px"
-        }}>
-          <h2>Live Tracking</h2>
+        <div>
+          <h3>ID: {result.id}</h3>
+          <p>
+            {result.pickup} → {result.delivery}
+          </p>
+          <p>Status: {result.status}</p>
 
-          <pre style={{
-            background: "#020617",
-            padding: "15px",
-            borderRadius: "8px",
-            color: "#38bdf8"
-          }}>
-{JSON.stringify(result, null, 2)}
-          </pre>
-
-          {/* MAP */}
           <MapTracker
             pickup={result.pickup}
             delivery={result.delivery}
           />
         </div>
       )}
-
     </div>
   );
 }
-
-/* 🔹 STYLES */
-const inputStyle = {
-  width: "100%",
-  padding: "12px",
-  marginTop: "15px",
-  marginBottom: "15px",
-  background: "#020617",
-  border: "1px solid #334155",
-  borderRadius: "8px",
-  color: "white"
-};
-
-const primaryBtn = {
-  width: "100%",
-  padding: "12px",
-  background: "#3b82f6",
-  border: "none",
-  borderRadius: "8px",
-  color: "white",
-  cursor: "pointer"
-};
