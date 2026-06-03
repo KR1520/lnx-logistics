@@ -2,7 +2,14 @@
 
 import { useEffect, useRef } from "react";
 
-/* ✅ DEFINE TYPES */
+/* ✅ FIX: extend Window type */
+declare global {
+  interface Window {
+    google: any;
+  }
+}
+
+/* ✅ TYPES */
 type MapTrackerProps = {
   pickup: string;
   delivery: string;
