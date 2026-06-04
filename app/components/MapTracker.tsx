@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import Script from "next/script";
 
-/* ✅ FIX: extend Window type */
+/* ✅ Extend Window */
 declare global {
   interface Window {
     google: any;
@@ -17,9 +18,10 @@ type MapTrackerProps = {
 
 export default function MapTracker({ pickup, delivery }: MapTrackerProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   useEffect(() => {
-    if (!window.google || !pickup || !delivery || !mapRef.current) return;
+    if (!mapLoaded || !window.google || !pickup || !delivery || !mapRef.current) return;
 
     const map = new window.google.maps.Map(mapRef.current, {
       zoom: 6,
@@ -41,20 +43,32 @@ export default function MapTracker({ pickup, delivery }: MapTrackerProps) {
         if (status === "OK") {
           directionsRenderer.setDirections(result);
         } else {
-          console.log("Map error:", status);
+          console.error("Directions error:", status);
         }
       }
     );
-  }, [pickup, delivery]);
+  }, [pickup, delivery, mapLoaded]);
 
   return (
-    <div
-      ref={mapRef}
-      style={{
-        width: "100%",
-        height: "400px",
-        marginTop: "20px",
-      }}
-    />
+    <>
+      {/* ✅ GOOGLE MAPS SCRIPT */}
+      <Script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD-QwjCnPMEuZN0-QkY3UR5aDnlC5HNjD0"
+        strategy="afterInteractive"
+        onLoad={() => setMapLoaded(true)}
+      />
+
+      {/* ✅ MAP CONTAINER */}
+      <div
+        ref={mapRef}
+        style={{
+          width: "100%",
+          height: "400px",
+          marginTop: "20px",
+          borderRadius: "12px",
+          overflow: "hidden",
+        }}
+      />
+    </>
   );
 }
