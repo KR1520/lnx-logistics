@@ -1,89 +1,35 @@
-import clientPromise from "@/lib/mongodb";
-
-// CREATE SHIPMENT
 export async function POST(req) {
-  try {
-    const body = await req.json();
+  const { pickup, delivery, weight, type, urgency } = await req.json();
 
-    const client = await clientPromise;
-    const db = client.db("lnx-logistics");
+  // 🔥 MODE SELECTION LOGIC
+  let mode = "road";
 
-    const newShipment = {
-      id: "LNX-" + Math.floor(100000 + Math.random() * 900000),
-      pickup: body.pickup,
-      delivery: body.delivery,
-      status: "Booked",
-      history: [
-        {
-          status: "Booked",
-          time: new Date(),
-        },
-      ],
-      createdAt: new Date(),
-    };
-
-    await db.collection("shipments").insertOne(newShipment);
-
-    return Response.json(newShipment);
-  } catch (error) {
-    console.error(error);
-    return Response.json({ error: "Failed" }, { status: 500 });
+  if (pickup !== delivery && delivery.includes("China")) {
+    mode = "sea";
   }
-}
 
-// GET ALL SHIPMENTS
-export async function GET() {
-  try {
-    const client = await clientPromise;
-    const db = client.db("lnx-logistics");
-
-    const shipments = await db
-      .collection("shipments")
-      .find({})
-      .toArray();
-
-    return Response.json(shipments);
-  } catch (error) {
-    console.error(error);
-    return Response.json({ error: "Failed" }, { status: 500 });
+  if (urgency === "high" || type === "pharma") {
+    mode = "air";
   }
-}
 
-// UPDATE STATUS
-export async function PUT(req) {
-  try {
-    const body = await req.json();
+  // 🔥 COST CALCULATION
+  let cost = 0;
 
-    const client = await clientPromise;
-    const db = client.db("lnx-logistics");
+  if (mode === "road") cost = 50 * weight;
+  if (mode === "sea") cost = 20 * weight;
+  if (mode === "air") cost = 120 * weight;
 
-    const shipment = await db.collection("shipments").findOne({ id: body.id });
+  const shipment = {
+    id: "LNX-" + Math.floor(Math.random() * 1000000),
+    pickup,
+    delivery,
+    weight,
+    type,
+    urgency,
+    mode,
+    cost,
+    status: "Booked",
+  };
 
-    if (!shipment) {
-      return Response.json({ error: "Not found" }, { status: 404 });
-    }
-
-    const updatedHistory = [
-      ...(shipment.history || []),
-      {
-        status: body.status,
-        time: new Date(),
-      },
-    ];
-
-    await db.collection("shipments").updateOne(
-      { id: body.id },
-      {
-        $set: {
-          status: body.status,
-          history: updatedHistory,
-        },
-      }
-    );
-
-    return Response.json({ success: true });
-  } catch (error) {
-    console.error(error);
-    return Response.json({ error: "Failed" }, { status: 500 });
-  }
+  return Response.json(shipment);
 }
