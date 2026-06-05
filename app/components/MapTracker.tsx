@@ -32,49 +32,33 @@ export default function MapTracker({ shipment }: any) {
       const start = await getLatLng(shipment.pickup);
       const end = await getLatLng(shipment.delivery);
 
-      if (shipment.mode === "road") {
-        const service = new window.google.maps.DirectionsService();
-        const renderer = new window.google.maps.DirectionsRenderer();
+      const line = new window.google.maps.Polyline({
+        path: [start, end],
+        strokeColor: "#00BFFF",
+        strokeWeight: 3,
+      });
 
-        renderer.setMap(map);
+      line.setMap(map);
 
-        service.route(
-          {
-            origin: start,
-            destination: end,
-            travelMode: "DRIVING",
-          },
-          (res: any, status: string) => {
-            if (status === "OK") renderer.setDirections(res);
-          }
-        );
-      } else {
-        const line = new window.google.maps.Polyline({
-          path: [start, end],
-          strokeColor: "#00f",
-          strokeWeight: 2,
-        });
+      const progress = shipment.progress || 0.3;
 
-        line.setMap(map);
+      const lat = start.lat() + (end.lat() - start.lat()) * progress;
+      const lng = start.lng() + (end.lng() - start.lng()) * progress;
 
-        const progress = shipment.progress || 0.3;
-
-        const lat = start.lat() + (end.lat() - start.lat()) * progress;
-        const lng = start.lng() + (end.lng() - start.lng()) * progress;
-
-        new window.google.maps.Marker({
-          position: { lat, lng },
-          map,
-          icon:
-            shipment.mode === "air"
-              ? "https://maps.google.com/mapfiles/kml/shapes/airports.png"
-              : "https://maps.google.com/mapfiles/kml/shapes/ferry.png",
-        });
-      }
+      new window.google.maps.Marker({
+        position: { lat, lng },
+        map,
+        icon:
+          shipment.mode === "air"
+            ? "https://maps.google.com/mapfiles/kml/shapes/airports.png"
+            : shipment.mode === "sea"
+            ? "https://maps.google.com/mapfiles/kml/shapes/ferry.png"
+            : "https://maps.google.com/mapfiles/kml/shapes/truck.png",
+      });
     };
 
     draw();
   }, [shipment]);
 
-  return <div ref={mapRef} style={{ height: "400px" }} />;
+  return <div ref={mapRef} style={{ height: "400px", marginTop: 20 }} />;
 }
