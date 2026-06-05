@@ -12,15 +12,10 @@ export default function Home() {
   const [email, setEmail] = useState("");
 
   const [trackingId, setTrackingId] = useState("");
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState(null);
 
-  // 🚀 CREATE SHIPMENT
+  // 🚀 CREATE
   const createShipment = async () => {
-    if (!pickup || !delivery || !weight || !email) {
-      alert("Fill all fields");
-      return;
-    }
-
     const res = await fetch("/api/shipments", {
       method: "POST",
       body: JSON.stringify({
@@ -33,10 +28,13 @@ export default function Home() {
     });
 
     const data = await res.json();
-    setResult(data);
-    setTrackingId(data.id);
 
-    // 📧 CALL EMAIL API
+    alert(`Shipment Created: ${data.id}`);
+
+    // DO NOT AUTO SHOW RESULT
+    setTrackingId("");
+    setResult(null);
+
     await fetch("/api/send-email", {
       method: "POST",
       body: JSON.stringify({
@@ -46,39 +44,30 @@ export default function Home() {
     });
   };
 
-  // 🔍 TRACK SHIPMENT
+  // 🔍 TRACK ONLY ON BUTTON
   const trackShipment = async () => {
-    if (!trackingId) {
-      alert("Enter tracking ID");
-      return;
-    }
+    if (!trackingId) return alert("Enter Tracking ID");
 
     const res = await fetch("/api/shipments");
     const all = await res.json();
 
-    const found = all.find((s: any) => s.id === trackingId);
+    const found = all.find((s) => s.id === trackingId);
 
-    if (!found) {
-      alert("Shipment not found");
-      return;
-    }
+    if (!found) return alert("Not found");
 
     setResult(found);
   };
 
   return (
-    <div style={{ padding: 30, background: "#020826", minHeight: "100vh", color: "white" }}>
-      
+    <div style={{ padding: 30, background: "#020826", color: "white" }}>
       <h1>LNX Logistics 🚀</h1>
-      <p>Multimodal AI Logistics (Road • Sea • Air)</p>
 
-      {/* CREATE */}
       <h2>Create Shipment</h2>
 
       <input placeholder="Pickup" onChange={(e) => setPickup(e.target.value)} />
       <input placeholder="Delivery" onChange={(e) => setDelivery(e.target.value)} />
       <input placeholder="Weight" onChange={(e) => setWeight(e.target.value)} />
-      <input placeholder="Customer Email" onChange={(e) => setEmail(e.target.value)} />
+      <input placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
 
       <select onChange={(e) => setType(e.target.value)}>
         <option value="general">General</option>
@@ -92,7 +81,6 @@ export default function Home() {
 
       <button onClick={createShipment}>Create</button>
 
-      {/* TRACK */}
       <h2>Track Shipment</h2>
 
       <input
@@ -103,27 +91,17 @@ export default function Home() {
 
       <button onClick={trackShipment}>Track</button>
 
-      {/* RESULT */}
       {result && (
         <div style={{ marginTop: 20 }}>
           <h3>ID: {result.id}</h3>
           <p>{result.pickup} → {result.delivery}</p>
           <p>Status: {result.status}</p>
+          <p>Mode: {result.mode}</p>
+          <p>ETA: {result.eta}</p>
 
-          <p>
-            Mode:
-            {result.mode === "road" && " 🚚 Road"}
-            {result.mode === "sea" && " 🚢 Sea"}
-            {result.mode === "air" && " ✈️ Air"}
-          </p>
+          <h4>Current Location: {result.currentLocation}</h4>
 
-          <p>Cost: ₹{result.cost}</p>
-
-          <MapTracker
-            pickup={result.pickup}
-            delivery={result.delivery}
-            mode={result.mode}
-          />
+          <MapTracker shipment={result} />
         </div>
       )}
     </div>
