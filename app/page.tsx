@@ -6,141 +6,124 @@ import MapTracker from "./components/MapTracker";
 export default function Home() {
   const [pickup, setPickup] = useState("");
   const [delivery, setDelivery] = useState("");
-
   const [weight, setWeight] = useState("");
   const [type, setType] = useState("general");
   const [urgency, setUrgency] = useState("normal");
+  const [email, setEmail] = useState("");
 
   const [trackingId, setTrackingId] = useState("");
   const [result, setResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
 
   // 🚀 CREATE SHIPMENT
   const createShipment = async () => {
-    if (!pickup || !delivery || !weight) {
-      alert("Please fill all fields");
+    if (!pickup || !delivery || !weight || !email) {
+      alert("Fill all fields");
       return;
     }
 
-    setLoading(true);
+    const res = await fetch("/api/shipments", {
+      method: "POST",
+      body: JSON.stringify({
+        pickup,
+        delivery,
+        weight: Number(weight),
+        type,
+        urgency,
+      }),
+    });
 
-    try {
-      const res = await fetch("/api/shipments", {
-        method: "POST",
-        body: JSON.stringify({
-          pickup,
-          delivery,
-          weight: Number(weight),
-          type,
-          urgency,
-        }),
-      });
+    const data = await res.json();
+    setResult(data);
+    setTrackingId(data.id);
 
-      const data = await res.json();
-      setResult(data);
-      setTrackingId(data.id);
-    } catch (err) {
-      alert("Error creating shipment");
-    }
-
-    setLoading(false);
+    // 📧 CALL EMAIL API
+    await fetch("/api/send-email", {
+      method: "POST",
+      body: JSON.stringify({
+        email,
+        id: data.id,
+      }),
+    });
   };
 
-  // 🔍 TRACK SHIPMENT (simple reuse)
-  const trackShipment = () => {
-    if (!trackingId || !result) {
-      alert("No shipment found");
+  // 🔍 TRACK SHIPMENT
+  const trackShipment = async () => {
+    if (!trackingId) {
+      alert("Enter tracking ID");
       return;
     }
+
+    const res = await fetch("/api/shipments");
+    const all = await res.json();
+
+    const found = all.find((s: any) => s.id === trackingId);
+
+    if (!found) {
+      alert("Shipment not found");
+      return;
+    }
+
+    setResult(found);
   };
 
   return (
-    <div style={{ padding: "40px", background: "#020826", minHeight: "100vh", color: "white" }}>
+    <div style={{ padding: 30, background: "#020826", minHeight: "100vh", color: "white" }}>
       
-      <h1 style={{ fontSize: "32px", marginBottom: "10px" }}>
-        LNX Logistics 🚀
-      </h1>
+      <h1>LNX Logistics 🚀</h1>
+      <p>Multimodal AI Logistics (Road • Sea • Air)</p>
 
-      <p style={{ marginBottom: "30px", color: "#94a1b2" }}>
-        AI Powered Multimodal Logistics (Road • Sea • Air)
-      </p>
+      {/* CREATE */}
+      <h2>Create Shipment</h2>
 
-      {/* 🚚 CREATE SHIPMENT */}
-      <div style={{ marginBottom: "30px" }}>
-        <h2>Create Shipment</h2>
+      <input placeholder="Pickup" onChange={(e) => setPickup(e.target.value)} />
+      <input placeholder="Delivery" onChange={(e) => setDelivery(e.target.value)} />
+      <input placeholder="Weight" onChange={(e) => setWeight(e.target.value)} />
+      <input placeholder="Customer Email" onChange={(e) => setEmail(e.target.value)} />
 
-        <div style={{ display: "flex", gap: "10px", marginTop: "10px", flexWrap: "wrap" }}>
-          <input
-            placeholder="Pickup (e.g. Chennai)"
-            value={pickup}
-            onChange={(e) => setPickup(e.target.value)}
-          />
+      <select onChange={(e) => setType(e.target.value)}>
+        <option value="general">General</option>
+        <option value="pharma">Pharma</option>
+      </select>
 
-          <input
-            placeholder="Delivery (e.g. China)"
-            value={delivery}
-            onChange={(e) => setDelivery(e.target.value)}
-          />
+      <select onChange={(e) => setUrgency(e.target.value)}>
+        <option value="normal">Normal</option>
+        <option value="high">Urgent</option>
+      </select>
 
-          <input
-            placeholder="Weight (kg)"
-            value={weight}
-            onChange={(e) => setWeight(e.target.value)}
-          />
+      <button onClick={createShipment}>Create</button>
 
-          <select onChange={(e) => setType(e.target.value)} value={type}>
-            <option value="general">General</option>
-            <option value="pharma">Pharma</option>
-          </select>
+      {/* TRACK */}
+      <h2>Track Shipment</h2>
 
-          <select onChange={(e) => setUrgency(e.target.value)} value={urgency}>
-            <option value="normal">Normal</option>
-            <option value="high">Urgent</option>
-          </select>
+      <input
+        placeholder="Tracking ID"
+        value={trackingId}
+        onChange={(e) => setTrackingId(e.target.value)}
+      />
 
-          <button onClick={createShipment}>
-            {loading ? "Creating..." : "Create"}
-          </button>
-        </div>
-      </div>
+      <button onClick={trackShipment}>Track</button>
 
-      {/* 📦 TRACK */}
-      <div style={{ marginBottom: "20px" }}>
-        <h2>Track Shipment</h2>
-
-        <input
-          placeholder="Tracking ID"
-          value={trackingId}
-          onChange={(e) => setTrackingId(e.target.value)}
-        />
-
-        <button onClick={trackShipment} style={{ marginLeft: "10px" }}>
-          Track
-        </button>
-      </div>
-
-      {/* 📊 RESULT */}
+      {/* RESULT */}
       {result && (
-        <div style={{ marginTop: "20px" }}>
+        <div style={{ marginTop: 20 }}>
           <h3>ID: {result.id}</h3>
-
-          <p>
-            {result.pickup} → {result.delivery}
-          </p>
-
+          <p>{result.pickup} → {result.delivery}</p>
           <p>Status: {result.status}</p>
 
           <p>
-            Mode:{" "}
-            {result.mode === "road" && "🚚 Road"}
-            {result.mode === "sea" && "🚢 Sea"}
-            {result.mode === "air" && "✈️ Air"}
+            Mode:
+            {result.mode === "road" && " 🚚 Road"}
+            {result.mode === "sea" && " 🚢 Sea"}
+            {result.mode === "air" && " ✈️ Air"}
           </p>
 
           <p>Cost: ₹{result.cost}</p>
 
-          {/* 🗺 MAP */}
-          <MapTracker pickup={result.pickup} delivery={result.delivery} />
+          <MapTracker
+            pickup={result.pickup}
+            delivery={result.delivery}
+            mode={result.mode}
+          />
         </div>
       )}
     </div>
