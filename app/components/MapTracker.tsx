@@ -8,57 +8,51 @@ declare global {
   }
 }
 
-export default function MapTracker({ shipment }: any) {
+export default function MapTracker({ pickup, delivery }: any) {
   const mapRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!window.google || !mapRef.current) return;
+    if (!pickup || !delivery) return;
 
-    const map = new window.google.maps.Map(mapRef.current, {
-      zoom: 4,
-      center: { lat: 20.5937, lng: 78.9629 },
-    });
+    // Load script if not already loaded
+    if (!window.google) {
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyD-QwjCnPMEuZN0-QkY3UR5aDnlC5HNjD0`;
+      script.async = true;
 
-    const geocoder = new window.google.maps.Geocoder();
+      script.onload = initMap;
+      document.body.appendChild(script);
+    } else {
+      initMap();
+    }
 
-    const getLatLng = (address: string) =>
-      new Promise<any>((resolve) => {
-        geocoder.geocode({ address }, (res: any, status: string) => {
-          if (status === "OK") resolve(res[0].geometry.location);
-        });
+    function initMap() {
+      if (!mapRef.current) return;
+
+      const map = new window.google.maps.Map(mapRef.current, {
+        zoom: 5,
+        center: { lat: 20.5937, lng: 78.9629 },
       });
 
-    const draw = async () => {
-      const start = await getLatLng(shipment.pickup);
-      const end = await getLatLng(shipment.delivery);
+      const directionsService = new window.google.maps.DirectionsService();
+      const directionsRenderer = new window.google.maps.DirectionsRenderer();
 
-      const line = new window.google.maps.Polyline({
-        path: [start, end],
-        strokeColor: "#00BFFF",
-        strokeWeight: 3,
-      });
+      directionsRenderer.setMap(map);
 
-      line.setMap(map);
+      directionsService.route(
+        {
+          origin: pickup,
+          destination: delivery,
+          travelMode: window.google.maps.TravelMode.DRIVING,
+        },
+        (result: any, status: string) => {
+          if (status === "OK") {
+            directionsRenderer.setDirections(result);
+          }
+        }
+      );
+    }
+  }, [pickup, delivery]);
 
-      const progress = shipment.progress || 0.3;
-
-      const lat = start.lat() + (end.lat() - start.lat()) * progress;
-      const lng = start.lng() + (end.lng() - start.lng()) * progress;
-
-      new window.google.maps.Marker({
-        position: { lat, lng },
-        map,
-        icon:
-          shipment.mode === "air"
-            ? "https://maps.google.com/mapfiles/kml/shapes/airports.png"
-            : shipment.mode === "sea"
-            ? "https://maps.google.com/mapfiles/kml/shapes/ferry.png"
-            : "https://maps.google.com/mapfiles/kml/shapes/truck.png",
-      });
-    };
-
-    draw();
-  }, [shipment]);
-
-  return <div ref={mapRef} style={{ height: "400px", marginTop: 20 }} />;
+  return <div ref={mapRef} style={{ width: "100%", height: "400px" }} />;
 }

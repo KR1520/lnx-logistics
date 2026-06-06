@@ -4,129 +4,106 @@ import { useState } from "react";
 import MapTracker from "./components/MapTracker";
 
 export default function Home() {
-  const [form, setForm] = useState({
-    pickup: "",
-    delivery: "",
-    weight: "",
-    type: "general",
-    urgency: "normal",
-    email: "",
-  });
+  const [pickup, setPickup] = useState("");
+  const [delivery, setDelivery] = useState("");
+  const [weight, setWeight] = useState("");
+  const [email, setEmail] = useState("");
+  const [urgency, setUrgency] = useState("normal");
+  const [productType, setProductType] = useState("general");
 
   const [trackingId, setTrackingId] = useState("");
   const [result, setResult] = useState<any>(null);
-  const [created, setCreated] = useState<any>(null);
-
-  const handleChange = (e: any) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
 
   // 🚀 CREATE SHIPMENT
   const createShipment = async () => {
     const res = await fetch("/api/shipments", {
       method: "POST",
       body: JSON.stringify({
-        ...form,
-        weight: Number(form.weight),
+        pickup,
+        delivery,
+        weight,
+        email,
+        urgency,
+        productType,
       }),
     });
 
     const data = await res.json();
+    setResult(data);
 
-    setCreated(data);
-    setTrackingId(data.id);
-
-    // EMAIL (simulated)
-    await fetch("/api/send-email", {
-      method: "POST",
-      body: JSON.stringify({
-        email: form.email,
-        id: data.id,
-      }),
-    });
+    alert("Shipment Created! ID: " + data.id);
   };
 
-  // 🔍 TRACK
+  // 🚀 TRACK SHIPMENT (IMPORTANT FIX)
   const trackShipment = async () => {
-    const res = await fetch("/api/shipments");
+    if (!trackingId) return alert("Enter Tracking ID");
+
+    const res = await fetch(`/api/shipments?id=${trackingId}`);
     const data = await res.json();
 
-    const found = data.find((s: any) => s.id === trackingId);
+    if (data.error) {
+      alert("Invalid Tracking ID");
+      return;
+    }
 
-    if (!found) return alert("Invalid Tracking ID");
-
-    setResult(found);
+    setResult(data);
   };
 
   return (
-    <div
-      style={{
-        background: "linear-gradient(135deg,#020826,#0f172a)",
-        minHeight: "100vh",
-        color: "white",
-        padding: 30,
-      }}
-    >
-      <h1 style={{ fontSize: 32 }}>LNX Logistics 🚀</h1>
+    <div style={{ padding: "20px", background: "#020c1b", color: "white" }}>
+      <h1>LNX Logistics 🚀</h1>
 
       {/* CREATE */}
-      <div style={{ marginTop: 30 }}>
-        <h2>Create Shipment</h2>
+      <h2>Create Shipment</h2>
 
-        <input name="pickup" placeholder="Pickup" onChange={handleChange} />
-        <input name="delivery" placeholder="Delivery" onChange={handleChange} />
-        <input name="weight" placeholder="Weight (kg)" onChange={handleChange} />
-        <input name="email" placeholder="Customer Email" onChange={handleChange} />
+      <input placeholder="Pickup" onChange={(e) => setPickup(e.target.value)} />
+      <input placeholder="Delivery" onChange={(e) => setDelivery(e.target.value)} />
+      <input placeholder="Weight" onChange={(e) => setWeight(e.target.value)} />
+      <input placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
 
-        <select name="type" onChange={handleChange}>
-          <option value="general">General Goods</option>
-          <option value="pharma">Pharma</option>
-          <option value="electronics">Electronics</option>
-        </select>
+      <select onChange={(e) => setUrgency(e.target.value)}>
+        <option value="normal">Normal</option>
+        <option value="urgent">Urgent</option>
+      </select>
 
-        <select name="urgency" onChange={handleChange}>
-          <option value="normal">Normal</option>
-          <option value="high">Urgent</option>
-        </select>
+      <select onChange={(e) => setProductType(e.target.value)}>
+        <option value="general">General</option>
+        <option value="pharma">Pharma</option>
+      </select>
 
-        <button onClick={createShipment}>Create Shipment</button>
-
-        {/* SHOW CREATED */}
-        {created && (
-          <div style={{ marginTop: 20, background: "#111", padding: 10 }}>
-            <h3>✅ Shipment Created</h3>
-            <p>ID: {created.id}</p>
-            <p>Status: {created.status}</p>
-            <p>Mode: {created.mode}</p>
-          </div>
-        )}
-      </div>
+      <button onClick={createShipment}>Create</button>
 
       {/* TRACK */}
-      <div style={{ marginTop: 40 }}>
-        <h2>Track Shipment</h2>
+      <h2>Track Shipment</h2>
 
-        <input
-          value={trackingId}
-          placeholder="Enter Tracking ID"
-          onChange={(e) => setTrackingId(e.target.value)}
-        />
+      <input
+        placeholder="Tracking ID"
+        value={trackingId}
+        onChange={(e) => setTrackingId(e.target.value)}
+      />
 
-        <button onClick={trackShipment}>Track</button>
+      <button onClick={trackShipment}>Track</button>
 
-        {result && (
-          <div style={{ marginTop: 20 }}>
-            <h3>ID: {result.id}</h3>
-            <p>{result.pickup} → {result.delivery}</p>
-            <p>Status: {result.status}</p>
-            <p>Mode: {result.mode}</p>
-            <p>ETA: {result.eta}</p>
-            <p>Location: {result.currentLocation}</p>
+      {/* RESULT */}
+      {result && (
+        <div>
+          <h3>ID: {result.id}</h3>
+          <p>{result.pickup} → {result.delivery}</p>
+          <p>Status: {result.status}</p>
+          <p>Mode: {result.mode}</p>
+          <p>ETA: {result.eta}</p>
 
-            <MapTracker shipment={result} />
-          </div>
-        )}
-      </div>
+          {result.productType === "pharma" && (
+            <p>🌡 Temp: {result.temperature}°C</p>
+          )}
+
+          {/* 🚀 MAP FIX */}
+          <MapTracker
+            pickup={result.pickup}
+            delivery={result.delivery}
+          />
+        </div>
+      )}
     </div>
   );
 }
